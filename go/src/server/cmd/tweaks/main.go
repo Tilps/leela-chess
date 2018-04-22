@@ -41,7 +41,7 @@ func makeRunActive() {
 	}
 	//training_run.Active = true
 	//training_run.Description = "Initial testing run"
-	training_run.TrainParameters = `["--randomize", "-n", "-v1600"]`
+	training_run.TrainParameters = `["--randomize", "-n", "-v800"]`
 	err = db.GetDB().Save(&training_run).Error
 	if err != nil {
 		log.Fatal(err)
@@ -51,11 +51,12 @@ func makeRunActive() {
 func newMatch() {
 	match := db.Match{
 		TrainingRunID: 1,
-		CandidateID:   92,
-		CurrentBestID: 83,
+		CandidateID:   138,
+		CurrentBestID: 125,
 		Done:          false,
 		GameCap:       400,
-		Parameters:    `["--noise"]`,
+		Parameters:    `["--tempdecay=10"]`,
+		TestOnly:      true,
 	}
 	err := db.GetDB().Create(&match).Error
 	if err != nil {

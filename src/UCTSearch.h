@@ -85,7 +85,7 @@ public:
 
 private:
     void dump_stats(BoardHistory& pos, UCTNode& parent);
-    std::string get_pv(BoardHistory& pos, UCTNode& parent);
+    std::string get_pv(BoardHistory& pos, UCTNode& parent, bool use_san);
     void dump_analysis(int64_t elapsed, bool force_output);
     Move get_best_move();
     float get_root_temperature();
@@ -96,13 +96,14 @@ private:
     std::atomic<int> m_nodes{0};
     std::atomic<int> m_playouts{0};
     int64_t m_target_time{0};
+    int64_t m_max_time{0};
     int64_t m_start_time{0};
     std::atomic<bool> m_run{false};
     int m_maxplayouts;
     int m_maxvisits;
 
     bool quiet_ = true;
-    bool uci_stop = false;
+    std::atomic<bool> uci_stop{false};
 
     int get_search_time();
 };
