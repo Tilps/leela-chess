@@ -488,7 +488,7 @@ Move UCTSearch::think(BoardHistory&& new_bh) {
 
     int64_t milliseconds_elapsed = now() - m_start_time;
     if (milliseconds_elapsed > 0) {
-        dump_analysis(milliseconds_elapsed, true);
+        //dump_analysis(milliseconds_elapsed, true);
     }
     Move bestmove = get_best_move();
     return bestmove;

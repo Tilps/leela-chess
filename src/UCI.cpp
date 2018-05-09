@@ -142,6 +142,10 @@ namespace {
     myprintf_so("%s", options.str().c_str());
   }
 
+  int ply = 0;
+  int missed_mates = 0;
+  int oblivious_mates = 0;
+
   // Return the score from the self-play game.
   // Precondition: bh.cur() is not a terminal position.
   int play_one_game(BoardHistory& bh) {
@@ -152,8 +156,45 @@ namespace {
       Limits.startTime = now();
       Move move = search->think(bh.shallow_clone());
 
+      Move max_child_move = move;
+      int max_visits = 0;
+      for (int i=0; i < search->m_root->get_children().size(); i++)
+      {
+          int visits = search->m_root->get_children()[i]->get_visits();
+          if (visits > max_visits)
+          {
+              max_visits = visits;
+              max_child_move = search->m_root->get_children()[i]->get_move();
+          }
+      }
+
+      bool mate_found = false;
+      bool move_is_mate = false;
+      bool best_child_move_is_mate = false;
+      for (Move a : MoveList<LEGAL>(bh.cur()))
+      {
+          auto bh2 = bh.shallow_clone();
+          bh2.do_move(a);
+          if (MoveList<LEGAL>(bh2.cur()).size() == 0 && bh2.cur().checkers() != 0)
+          {
+              mate_found = true;
+              if (a == move) move_is_mate = true;
+              if (a == max_child_move) best_child_move_is_mate = true;
+          }
+      }
+        if (mate_found && !move_is_mate)
+        {
+            missed_mates++;
+        }
+        if (mate_found && !best_child_move_is_mate)
+        {
+            oblivious_mates++;
+            myprintf_so("PGN\n%s\nEND\n", bh.pgn().c_str());
+        }
+        ply++;
+
       if (move != MOVE_NONE) {
-        myprintf_so("move played %s\n", UCI::move(move).c_str());
+        //myprintf_so("move played %s\n", UCI::move(move).c_str());
         bh.do_move(move);
       } else {
         // Resign - so whoever is current, has lost.
@@ -185,9 +226,9 @@ namespace {
 
     Training::clear_training();
     int game_score = play_one_game(bh);
-
-    myprintf_so("PGN\n%s\nEND\n", bh.pgn().c_str());
-    myprintf_so("Score: %d\n", game_score);
+    myprintf_so("%d, %d, %f, %d, %f\n", ply, missed_mates, (float)missed_mates*100.0f / ply, oblivious_mates, (float)oblivious_mates*100.0f / ply);
+    //myprintf_so("PGN\n%s\nEND\n", bh.pgn().c_str());
+    //myprintf_so("Score: %d\n", game_score);
 
     return game_score;
   }
